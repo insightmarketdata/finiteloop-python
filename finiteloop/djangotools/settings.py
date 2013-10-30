@@ -67,4 +67,4 @@ def get_debug_flag(env='DJANGO_DEBUG', default='false'):
 
 def get_raven_config(env='SENTRY_DSN'):
     dsn = os.environ.get(env)
-    return { 'dsn': dsn, 'register_signals': True } if dns else None
+    return { 'dsn': dsn, 'register_signals': True } if dsn else None
