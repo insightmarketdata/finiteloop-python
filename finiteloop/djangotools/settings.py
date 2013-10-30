@@ -1,4 +1,5 @@
 import os
+import random
 
 try:
     import urlparse
@@ -68,3 +69,13 @@ def get_debug_flag(env='DJANGO_DEBUG', default='false'):
 def get_raven_config(env='SENTRY_DSN'):
     dsn = os.environ.get(env)
     return { 'dsn': dsn, 'register_signals': True } if dsn else None
+
+
+def get_secret_key(env='SECRET_KEY'):
+    key = os.environ.get(env)
+
+    if key:
+        return key
+    else:
+        chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+        return ''.join([random.choice(chars) for i in range(50)])
