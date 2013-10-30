@@ -90,11 +90,12 @@ def get_raven_config(env='SENTRY_DSN'):
 
 
 def get_mail_config(env='EMAIL_SERVER', default=None):
-    url = urlparse.urlparse(os.environ[env])
+    url = os.environ.get(env, default)
 
     if url is None:
         return {}
 
+    url = urlparse.urlparse(url)
     return {
         'EMAIL_USE_TLS': url.scheme == 'smtps',
         'EMAIL_HOST': url.hostname,
