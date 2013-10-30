@@ -20,7 +20,20 @@ SCHEMES = {
     'dummycache': 'django.core.cache.backends.dummy.DummyCache',
 }
 
-for scheme in SCHEMES.keys():
+DEFAULT_PORTS = {
+    'postgres': 5432,
+    'postgresql': 5432,
+    'postgis': 5432,
+    'mysql': 3306,
+    'mysql2': 3306,
+    'redis2': 6379,
+    'redis3': 6379,
+    'smtp': 25,
+    'memcached': 11211,
+    'smtps': 587,
+}
+
+for scheme in set(SCHEMES.keys() + DEFAULT_PORTS.keys()):
     urlparse.uses_netloc.append(scheme)
 
 
@@ -41,7 +54,7 @@ def get_database_url(env='DATABASE_URL'):
         'USER': url.username,
         'PASSWORD': url.password,
         'HOST': url.hostname,
-        'PORT': url.port,
+        'PORT': url.port or DEFAULT_PORTS.get(url.scheme),
     }
 
 
@@ -50,14 +63,16 @@ def get_cache_url(env='DEFAULT_CACHE_URL', default='dummycache://'):
     config = { 'BACKEND': SCHEMES[url.scheme] }
 
     if url.hostname and url.port:
-        config['LOCATION'] = '{}:{}'.format(url.hostname, url.port)
+        config['LOCATION'] = '{}:{}'.format(url.hostname,
+                url.port or DEFAULT_PORTS.get(url.scheme))
 
     # The redis client has some stupid behavior
     if url.scheme == 'redis2':
         config['OPTIONS'] = { 'DB': url.path[1:] }
     elif url.scheme == 'redis3':
         config['LOCATION'] = '{}:{}:{}'.format(
-                url.hostname, url.port, url.path[1:])
+                url.hostname, url.port or DEFAULT_PORTS.get(url.scheme),
+                url.path[1:])
 
     return config
 
