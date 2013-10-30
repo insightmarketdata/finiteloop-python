@@ -86,6 +86,18 @@ def get_raven_config(env='SENTRY_DSN'):
     return { 'dsn': dsn, 'register_signals': True } if dsn else None
 
 
+def get_mail_config(env='EMAIL_SERVER'):
+    url = urlparse.urlparse(os.environ[env])
+
+    return {
+        'EMAIL_USE_TLS': url.scheme == 'smtps',
+        'EMAIL_HOST': url.hostname,
+        'EMAIL_PORT': url.port or DEFAULT_PORTS.get(url.scheme),
+        'EMAIL_HOST_USER': url.username,
+        'EMAIL_HOST_PASSWORD': url.password,
+    }
+
+
 def get_secret_key(env='SECRET_KEY'):
     key = os.environ.get(env)
 
