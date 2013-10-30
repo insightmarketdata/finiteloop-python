@@ -37,8 +37,11 @@ for scheme in set(SCHEMES.keys() + DEFAULT_PORTS.keys()):
     urlparse.uses_netloc.append(scheme)
 
 
-def get_database_url(env='DATABASE_URL'):
-    url = os.environ[env]
+def get_database_url(env='DATABASE_URL', default=None):
+    url = os.environ.get(env, default)
+
+    if url is None:
+        return
 
     if url == 'sqlite://:memory:' or url == 'sqlite://':
         return {
@@ -86,8 +89,11 @@ def get_raven_config(env='SENTRY_DSN'):
     return { 'dsn': dsn, 'register_signals': True } if dsn else None
 
 
-def get_mail_config(env='EMAIL_SERVER'):
+def get_mail_config(env='EMAIL_SERVER', default=None):
     url = urlparse.urlparse(os.environ[env])
+
+    if url is None:
+        return {}
 
     return {
         'EMAIL_USE_TLS': url.scheme == 'smtps',
