@@ -16,6 +16,7 @@ SCHEMES = {
     'sqlite': 'django.db.backends.sqlite3',
     'redis2': 'redis_cache.cache.RedisCache',
     'redis3': 'redis_cache.cache.RedisCache',
+    'redis4': 'redis_cache.cache.RedisCache',
     'memcached': 'django.core.cache.backends.memcached.MemcachedCache',
     'dummycache': 'django.core.cache.backends.dummy.DummyCache',
 }
@@ -76,6 +77,14 @@ def get_cache_url(env='DEFAULT_CACHE_URL', default='dummycache://'):
         config['LOCATION'] = '{}:{}:{}'.format(
                 url.hostname, url.port or DEFAULT_PORTS.get(url.scheme),
                 url.path[1:])
+    elif url.scheme == 'redis4':
+        config['LOCATION'] = '{}:{}:{}'.format(
+                url.hostname, url.port or DEFAULT_PORTS.get(url.scheme),
+                url.path[1:])
+        config['OPTIONS'] = {
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            'PARSER_CLASS': 'redis.connection.HiredisParser'
+        }
 
     return config
 
