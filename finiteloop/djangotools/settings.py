@@ -29,6 +29,7 @@ DEFAULT_PORTS = {
     'mysql2': 3306,
     'redis2': 6379,
     'redis3': 6379,
+    'redis4': 6379,
     'smtp': 25,
     'memcached': 11211,
     'smtps': 587,

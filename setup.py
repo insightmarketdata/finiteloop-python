@@ -7,7 +7,7 @@ from finiteloop.packaging import find_packages
 
 setup(
     name='finiteloop',
-    version='0.1.5',
+    version='0.1.6',
     description='Finite Loop Utilities',
     author='Mike Crute',
     author_email='mike@finiteloopsoftware.com',
