@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 import glob
-from distutils.core import setup
+from setuptools import setup
 from finiteloop.packaging import find_packages
-
 
 setup(
     name='finiteloop',
@@ -14,4 +13,5 @@ setup(
     url='http://finiteloopsoftware.com',
     packages=find_packages('finiteloop'),
     scripts=glob.glob("scripts/*"),
+    test_suite = 'finiteloop.test.suite',
 )

@@ -3,3 +3,4 @@ build/
 *.pyc
 MANIFEST
 .DS_Store
+finiteloop.egg-info
