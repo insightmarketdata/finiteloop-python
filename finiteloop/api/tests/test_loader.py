@@ -2,7 +2,8 @@ import unittest
 import inspect
 import os
 from finiteloop.api.loader import ModuleInspector
-
+from finiteloop.api.loader import FindResources
+from finiteloop.api.loader import GetApiUrls
 
 class TestModuleInspectorAsEgg(unittest.TestCase):
 
@@ -54,3 +55,48 @@ class TestModuleInspectorAsLocal(unittest.TestCase):
     def test_sub_modules(self):
         out = self.obj.sub_modules()
         self.assertIsInstance(out, list)
+
+
+class TestFindResources(unittest.TestCase):
+
+    def setUp(self):
+        apps = ['finiteloop.resourcetester']
+        self.obj = FindResources(apps)
+
+    def test_all(self):
+        self.assertIsNotNone(self.obj.all)
+
+    def test_all_is_list(self):
+        self.assertIsInstance(self.obj.all, list)
+
+    def test_length(self):
+        self.assertEqual(len(self.obj.all), 1)
+
+    def test_is_resource(self):
+        mod = self.obj.all[0]
+        msg = "{} is not correct".format(mod.name)
+        self.assertTrue(mod.name.endswith('TrustyResource'), msg)
+
+
+class MockTastyPieApiObj(object):
+
+    def __init__(self):
+        self.urls = []
+
+    def register(self, name):
+        self.urls.append(name)
+
+
+class TestApiUrls(unittest.TestCase):
+
+    def setUp(self):
+        self.obj = GetApiUrls(MockTastyPieApiObj())
+
+    def test_urls(self):
+        objs = ['one', 'two', 'three']
+        self.obj.add(objs)
+        self.assertEquals(self.obj.urls(), objs)
+
+
+
+

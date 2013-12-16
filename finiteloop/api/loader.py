@@ -125,8 +125,9 @@ class FindResources(object):
     """
     FIELDS = ('name', 'obj',)
 
-    def __init__(self, apps):
+    def __init__(self, apps, trigger="resources"):
         self._apps = apps
+        self._trigger = trigger
         self._resources = []
         self._build_mod = namedtuple('mod', 'mod, name')
         self._build_resource = namedtuple('res', 'name, obj')
@@ -144,7 +145,6 @@ class FindResources(object):
 
     def __iter__(self):
         for resource in self.all:
-            print resource.name
             yield resource.obj()
 
     def _get_resources(self):
@@ -174,7 +174,7 @@ class FindResources(object):
     def _get_app_mods(self):
         out = []
         for app in self._get_apps():
-            app = "{}.resources".format(app)
+            app = "{}.{}".format(app, self._trigger)
             self._get_mods(app, out)
         return out
 
@@ -205,7 +205,7 @@ class FindResources(object):
         return False
 
 
-class ApiUrls(object):
+class GetApiUrls(object):
 
     API_NAME = 'api'
 
