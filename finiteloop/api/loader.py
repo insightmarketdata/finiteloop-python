@@ -89,7 +89,7 @@ class ModuleInspector(object):
             if name:
                 name = name.split('/')[0]
                 name = os.path.splitext(name)[0]
-                if not name.startswith('__'):
+                if not (name.startswith('__') or name.startswith('.')):
                     out.add("{}.{}".format(self.name, name))
         return sorted(out)
 
@@ -102,7 +102,7 @@ class ModuleInspector(object):
         for root, dirs, files in os.walk(path):
             for name in files:
                 name = os.path.splitext(name)[0]
-                if not name.startswith('__'):
+                if not (name.startswith('__') or name.startswith('.')):
                     out.add("{}.{}".format(self.name, name))
         return sorted(out)
 
