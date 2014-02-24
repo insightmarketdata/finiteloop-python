@@ -45,7 +45,7 @@ def get_media_path(env='SHARED_PATH', default=None):
     if shared_path == None:
         return default
 
-    return os.path.join(os.environ.get('HOME'), shared_path, 'site_media')
+    return os.path.join(os.path.expanduser('~'), shared_path, 'site_media')
 
 
 def get_database_url(env='DATABASE_URL', default=None):
