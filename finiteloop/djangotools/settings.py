@@ -102,6 +102,8 @@ def get_cache_url(env='DEFAULT_CACHE_URL', default='dummycache://'):
 def get_debug_flag(env='DJANGO_DEBUG', default='false'):
     return os.environ.get(env, default).lower() == 'true'
 
+def get_allowed_hosts(env='ALLOWED_HOSTS', default=''):
+    return [h.strip() for h in os.environ.get(env, default).split(',')]
 
 def get_raven_config(env='SENTRY_DSN'):
     dsn = os.environ.get(env)
