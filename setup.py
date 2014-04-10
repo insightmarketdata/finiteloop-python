@@ -6,10 +6,10 @@ from finiteloop.packaging import find_packages
 
 setup(
     name='finiteloop',
-    version='0.1.12',
+    version='0.1.13',
     description='Finite Loop Utilities',
-    author='Mike Crute',
-    author_email='mike@finiteloopsoftware.com',
+    author='Finite Loop, LLC',
+    author_email='info@finiteloopsoftware.com',
     url='http://finiteloopsoftware.com',
     packages=find_packages('finiteloop'),
     scripts=glob.glob("scripts/*"),
