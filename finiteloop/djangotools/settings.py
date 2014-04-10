@@ -1,5 +1,10 @@
 import os
 import random
+import ConfigParser
+import copy
+import dateutil.parser
+from pytz import timezone
+from collections import namedtuple
 
 try:
     import urlparse
@@ -133,4 +138,84 @@ def get_secret_key(env='SECRET_KEY'):
         return key
     else:
         chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-        return ''.join([random.choice(chars) for i in range(50)])
+
+class ReleaseInfo(object):
+
+    DEFAULT_TZ = "America/New_York"
+    FILENAME = "manifest.cfg"
+    RELEASE_OPTIONS = ['app', 'ref', 'sha', 'date', 'type', 'by']
+    TEMPLATE = {'release': {}, 'migrations': []}
+
+    def __init__(self, filename, tz):
+        self.filename = filename
+        self.tz = tz
+        self._config_ = None
+        self._build_output = namedtuple('ReleaseInfo', 'release migrations')
+        self._build_release = namedtuple('ReleaseData', self.RELEASE_OPTIONS)
+
+    @classmethod
+    def get(cls, dirname, filename=None, tz=None):
+        """Returns a named tuple containing the release information
+        :param dirname: is the directory where the release file may exist
+        :param filename: is the name of the file to load. Default: manifest.cfg
+        :param tz: is the text description of the timezone needed to display.
+                   Default: America/New_York
+        """
+        if not os.path.exists(dirname) or not os.path.isdir(dirname):
+            raise Exception("{} does not exist".format(dirname))
+
+        filename = filename or cls.FILENAME
+        filename = os.path.join(dirname, filename)
+
+        tz = tz or timezone(cls.DEFAULT_TZ)
+        if isinstance(tz, basestring):
+            tz = timezone(tz)
+
+        obj = cls(filename, tz)
+        return obj()
+
+    def __call__(self):
+        data = copy.copy(self.TEMPLATE)
+        self.release_info(data)
+        self.migration_info(data)
+
+        data['migrations'].sort()
+
+        args = []
+        for key in self.RELEASE_OPTIONS:
+            args.append(data['release'][key])
+
+        release_info = self._build_release(*args)
+        out = self._build_output(release_info, data['migrations'])
+        return out
+
+    @property
+    def config(self):
+        if not self._config_:
+            self._config_ = ConfigParser.RawConfigParser()
+            if (os.path.exists(self.filename) and
+                        os.path.isfile(self.filename)):
+                self._config_.read(self.filename)
+        return self._config_
+
+    def release_info(self, data):
+        for key in self.RELEASE_OPTIONS:
+            val = None
+            if self.config.has_option('release', key):
+                if key == 'date':
+                    date = dateutil.parser.parse(self.config.get('release',
+                           key))
+                    val = date.astimezone(self.tz)
+                else:
+                    val = self.config.get('release', key)
+
+            data['release'][key] = val
+
+    def migration_info(self, data):
+        for section in self.config.sections():
+            if section.startswith('migrations'):
+                app = section.split(':')[1]
+                for option in self.config.options(section):
+                    if self.config.get(section, option) == 'true':
+                        data['migrations'].append("{} {}".format(app, option))
+
