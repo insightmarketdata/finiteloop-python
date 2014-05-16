@@ -39,10 +39,14 @@ DEFAULT_PORTS = {
     'memcached': 11211,
     'smtps': 587,
 }
+DEFAULT_TIME_ZONE = "America/New_York"
 
 for scheme in set(SCHEMES.keys() + DEFAULT_PORTS.keys()):
     urlparse.uses_netloc.append(scheme)
 
+def get_time_zone(env='TIME_ZONE', default=None):
+    default = default or DEFAULT_TIMEZONE
+    return os.environ.get(env, default)
 
 def get_media_path(env='SHARED_PATH', default=None):
     shared_path = os.environ.get(env, None)
