@@ -3,6 +3,7 @@ import random
 import ConfigParser
 import copy
 import dateutil.parser
+import urllib2
 from pytz import timezone
 from collections import namedtuple
 
@@ -45,7 +46,7 @@ for scheme in set(SCHEMES.keys() + DEFAULT_PORTS.keys()):
     urlparse.uses_netloc.append(scheme)
 
 def get_time_zone(env='TIME_ZONE', default=None):
-    default = default or DEFAULT_TIMEZONE
+    default = default or DEFAULT_TIME_ZONE
     return os.environ.get(env, default)
 
 def get_media_path(env='SHARED_PATH', default=None):
@@ -126,12 +127,12 @@ def get_mail_config(env='EMAIL_SERVER', default=None):
         return {}
 
     url = urlparse.urlparse(url)
-    return {
+   return {
         'EMAIL_USE_TLS': url.scheme == 'smtps',
         'EMAIL_HOST': url.hostname,
         'EMAIL_PORT': url.port or DEFAULT_PORTS.get(url.scheme),
-        'EMAIL_HOST_USER': url.username,
-        'EMAIL_HOST_PASSWORD': url.password,
+        'EMAIL_HOST_USER': urllib2.unquote(url.username),
+        'EMAIL_HOST_PASSWORD': urllib2.unquote(url.password),
     }
 
 
@@ -142,6 +143,7 @@ def get_secret_key(env='SECRET_KEY'):
         return key
     else:
         chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+        return ''.join([random.choice(chars) for i in range(50)])
 
 class ReleaseInfo(object):
 
