@@ -12,7 +12,6 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-
 SCHEMES = {
     'postgres': 'django.db.backends.postgresql_psycopg2',
     'postgresql': 'django.db.backends.postgresql_psycopg2',
@@ -72,6 +71,12 @@ def get_database_url(env='DATABASE_URL', default=None):
 
     url = urlparse.urlparse(url)
 
+    if url.scheme == 'sqlite':
+        return {
+                'ENGINE': SCHEMES[url.scheme],
+                'NAME': url.path
+        }
+
     return {
         'ENGINE': SCHEMES[url.scheme],
         'NAME': url.path[1:].split('?', 2)[0],
@@ -120,20 +125,58 @@ def get_raven_config(env='SENTRY_DSN'):
     return { 'dsn': dsn, 'register_signals': True } if dsn else {}
 
 
-def get_mail_config(env='EMAIL_SERVER', default=None):
-    url = os.environ.get(env, default)
+class MailConfig(object):
+    """This is used for telling django what email server to
+    connect with to send email.  To correctly used this
+    add the following to your settings.py or settings_local.py:
 
-    if url is None:
-        return {}
+        import sys
+        from finiteloop.djangotools.settings import MailConfig
 
-    url = urlparse.urlparse(url)
-   return {
-        'EMAIL_USE_TLS': url.scheme == 'smtps',
-        'EMAIL_HOST': url.hostname,
-        'EMAIL_PORT': url.port or DEFAULT_PORTS.get(url.scheme),
-        'EMAIL_HOST_USER': urllib2.unquote(url.username),
-        'EMAIL_HOST_PASSWORD': urllib2.unquote(url.password),
-    }
+        # This loads and sets the email configuration
+        MailConfig.set(sys.modules[__name__])
+
+    This object will read the environment variable EMAIL_SERVER
+    which should be formatted like:
+
+        smtp://<username>:<password>@<hostname>:<port>
+    or the following for TLS:
+        smtps://<username>:<password>@<hostname>:<port>
+
+    """
+    DEFAULT = 'smtp://:@localhost:25'
+    BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+    def __init__(self, env='EMAIL_SERVER', default=None):
+        default = default or self.DEFAULT
+        self.url = urlparse.urlparse(os.environ.get(env, default))
+        self._data = {}
+
+    @property
+    def data(self):
+        if not self._data:
+            if self.url.scheme in ('smtp', 'smtps',):
+                self._data['EMAIL_BACKEND'] = self.BACKEND
+                self._data['EMAIL_HOST'] = self.url.hostname
+                self._data['EMAIL_HOST_PASSWORD'] = urllib2.unquote(self.url.password)
+                self._data['EMAIL_HOST_USER'] = urllib2.unquote(self.url.username)
+                self._data['EMAIL_PORT'] = self.url.port
+                self._data['EMAIL_USE_TLS'] = self.url.scheme == 'smtps'
+            else:
+                msg = "unknown scheme '{}'".format(url.scheme)
+                raise ValueError(msg)
+        return self._data
+
+    def set_settings(self, the_module):
+        keys = self.data.keys()
+        keys.sort()
+        for key in keys:
+            setattr(the_module, key, self.data[key])
+
+    @classmethod
+    def set(cls, the_module, env='EMAIL_SERVER', default=None):
+        obj = cls(env=env, default=default)
+        obj.set_settings(the_module)
 
 
 def get_secret_key(env='SECRET_KEY'):
